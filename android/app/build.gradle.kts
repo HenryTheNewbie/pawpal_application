@@ -11,7 +11,16 @@ plugins {
 android {
     namespace = "com.example.pawpal_application"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973"
+
+    compileSdk = 34
+    defaultConfig {
+        applicationId = "com.example.pawpal"
+        minSdk = 21
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0"
+    }
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
