@@ -14,3 +14,4 @@ class AppTypography {
     labelLarge: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.textPrimary),
   );
 }
+
