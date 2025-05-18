@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:pawpal_application/theme/typography.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
+import '../firebase_options.dart';
+import '../theme/theme.dart';
+import '../routes/routes.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -104,7 +109,7 @@ class LoginScreen extends StatelessWidget {
                     ),
                     TextButton(
                       onPressed: () {
-                        // Navigate to Register
+                        Navigator.pushNamed(context, AppRoutes.register);
                       },
                       child: const Text(
                           'Register here.',
