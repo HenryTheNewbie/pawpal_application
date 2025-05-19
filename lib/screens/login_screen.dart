@@ -5,9 +5,90 @@ import 'package:firebase_database/firebase_database.dart';
 import '../firebase_options.dart';
 import '../theme/theme.dart';
 import '../routes/routes.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class LoginScreen extends StatelessWidget {
+class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+
+  bool _rememberMe = false;
+
+  String? _error;
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkLoginStatus();
+  }
+
+  Future<void> _checkLoginStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+
+    if (isLoggedIn && mounted) {
+      Navigator.pushReplacementNamed(context, AppRoutes.discovery);
+    }
+  }
+
+  Future<void> _loginUser() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    if (email.isEmpty || password.isEmpty) {
+      setState(() {
+        _error = 'Please enter both email and password.';
+      });
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+      _error = null;
+    });
+
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
+
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool('isLoggedIn', true);
+
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, AppRoutes.discovery);
+      }
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        _error = e.message ?? 'Login failed.';
+      });
+    } catch (e) {
+      setState(() {
+        _error = 'An unexpected error occurred.';
+      });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,54 +104,82 @@ class LoginScreen extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Logo
                 Image.asset(
                   'assets/images/pawpal_logo_full.png',
                   height: size.height * 0.25,
                 ),
                 const SizedBox(height: 50),
 
-                // Email Field
+                if (_error != null) ...[
+                  Text(
+                    _error!,
+                    style: const TextStyle(color: Colors.red),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
                 TextField(
+                  controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Email',
-                    border: const OutlineInputBorder(),
+                    border: OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 16),
 
-                // Password Field
                 TextField(
+                  controller: _passwordController,
                   obscureText: true,
-                  decoration: InputDecoration(
+                  decoration: const InputDecoration(
                     labelText: 'Password',
-                    border: const OutlineInputBorder(),
+                    border: OutlineInputBorder(),
                   ),
                 ),
                 const SizedBox(height: 12),
 
-                // Forgot Password
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: () {
-                      // Navigate to Forgot Password
-                    },
-                    child: Text(
-                      'Forgot Password?',
-                      style: TextStyle(
-                        color: theme.colorScheme.primary,
-                        fontSize: 16,
-                        fontFamily: 'Quicksand', // Custom font
-                        fontWeight: FontWeight.w500, // Medium weight
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Checkbox(
+                          value: _rememberMe,
+                          onChanged: (value) {
+                            setState(() {
+                              _rememberMe = value ?? false;
+                            });
+                          },
+                          activeColor: theme.colorScheme.primary,
+                        ),
+                        const Text(
+                          'Remember Me',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontFamily: 'Quicksand',
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, AppRoutes.forgotPassword);
+                      },
+                      child: Text(
+                        'Forgot Password?',
+                        style: TextStyle(
+                          color: theme.colorScheme.primary,
+                          fontSize: 16,
+                          fontFamily: 'Quicksand',
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
                 const SizedBox(height: 16),
 
-                // Login Button
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
@@ -79,7 +188,7 @@ class LoginScreen extends StatelessWidget {
                       foregroundColor: Colors.black,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(50), // More rounded corners
+                        borderRadius: BorderRadius.circular(50),
                       ),
                       textStyle: const TextStyle(
                         fontSize: 16,
@@ -87,20 +196,27 @@ class LoginScreen extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    onPressed: () {
-                      // Handle login
-                    },
-                    child: const Text('Login'),
+                    onPressed: _isLoading ? null : _loginUser,
+                    child: _isLoading
+                        ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor:
+                          AlwaysStoppedAnimation<Color>(Colors.black),
+                      ),
+                    )
+                        : const Text('Login'),
                   ),
                 ),
                 const SizedBox(height: 16),
 
-                // Register prompt
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
-                        "Don't have an account?",
+                      "Don't have an account?",
                       style: TextStyle(
                         fontSize: 16,
                         fontFamily: 'Quicksand',
@@ -112,7 +228,7 @@ class LoginScreen extends StatelessWidget {
                         Navigator.pushNamed(context, AppRoutes.register);
                       },
                       child: const Text(
-                          'Register here.',
+                        'Register here.',
                         style: TextStyle(
                           fontSize: 16,
                           fontFamily: 'Quicksand',
@@ -121,7 +237,7 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
                   ],
-                )
+                ),
               ],
             ),
           ),
