@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import '../firebase_options.dart';
 import '../theme/theme.dart';
 import '../routes/routes.dart';
@@ -34,7 +35,7 @@ class _LoginScreenState extends State<LoginScreen> {
     final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
     if (isLoggedIn && mounted) {
-      Navigator.pushReplacementNamed(context, AppRoutes.discovery);
+      Navigator.pushNamed(context, AppRoutes.mainScreen);
     }
   }
 
@@ -55,16 +56,30 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
+      final userCredential = await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setBool('isLoggedIn', true);
+
+      if (_rememberMe) {
+        await prefs.setBool('isLoggedIn', true);
+      } else {
+        await prefs.remove('isLoggedIn');
+      }
+
+      final user = userCredential.user;
+      if (user != null) {
+        final token = await FirebaseMessaging.instance.getToken();
+        if (token != null) {
+          final userRef = FirebaseDatabase.instance.ref().child('users/${user.uid}');
+          await userRef.update({'fcmToken': token});
+        }
+      }
 
       if (mounted) {
-        Navigator.pushReplacementNamed(context, AppRoutes.discovery);
+        Navigator.pushNamed(context, AppRoutes.mainScreen);
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
