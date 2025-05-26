@@ -84,7 +84,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       });
 
       if (mounted) {
-        Navigator.pushReplacementNamed(context, AppRoutes.login);
+        Navigator.pushNamed(context, AppRoutes.login);
       }
     } on FirebaseAuthException catch (e) {
       setState(() {

@@ -8,8 +8,8 @@ import '../routes/routes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/cupertino.dart';
 
-class DiscoveryScreen extends StatelessWidget {
-  const DiscoveryScreen({super.key});
+class ChatScreen extends StatelessWidget {
+  const ChatScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
