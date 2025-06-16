@@ -11,7 +11,7 @@ class AppColors {
 
   // Text Colors
   static const Color textPrimary = Color(0xFF402E32);   // Deep brownish purple
-  static const Color textSecondary = Color(0x99402E32); // 60% opacity
+  static const Color textSecondary = Color(0xCC402E32); // 80% opacity
   static const Color textDisabled = Color(0x55402E32);  // 33% opacity
 
   // Borders and Dividers

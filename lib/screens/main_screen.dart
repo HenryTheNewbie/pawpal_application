@@ -40,29 +40,42 @@ class _MainScreenState extends State<MainScreen> {
     return Scaffold(
       backgroundColor: theme.colorScheme.background,
       body: _screens[_selectedIndex],
-      bottomNavigationBar: SizedBox(
-        height: 60,
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: _onItemTapped,
-          backgroundColor: Colors.white,
-          selectedItemColor: Colors.black,
-          unselectedItemColor: Colors.grey,
-          showUnselectedLabels: false,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(CupertinoIcons.paw),
-              label: 'Discover',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(CupertinoIcons.chat_bubble_2),
-              label: 'Chat',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(CupertinoIcons.person_crop_circle),
-              label: 'Profile',
+      bottomNavigationBar: Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.03),
+              offset: const Offset(0, -3),
+              blurRadius: 6,
+              spreadRadius: 0,
             ),
           ],
+        ),
+        child: SizedBox(
+          height: 60,
+          child: BottomNavigationBar(
+            currentIndex: _selectedIndex,
+            onTap: _onItemTapped,
+            backgroundColor: Colors.white,
+            selectedItemColor: Colors.black,
+            unselectedItemColor: Colors.grey,
+            showUnselectedLabels: false,
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(CupertinoIcons.paw),
+                label: 'Discover',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(CupertinoIcons.chat_bubble_2),
+                label: 'Chat',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(CupertinoIcons.person_crop_circle),
+                label: 'Profile',
+              ),
+            ],
+          ),
         ),
       ),
     );
