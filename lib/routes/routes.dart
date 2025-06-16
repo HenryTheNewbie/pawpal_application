@@ -16,6 +16,8 @@ import '../screens/user_privacy_policy_screen.dart';
 import '../screens/user_terms_screen.dart';
 import '../screens/about_the_app_screen.dart';
 import '../screens/user_notifications_screen.dart';
+import '../models/chat_detail_arguments.dart';
+import '../screens/chat_detail_screen.dart';
 
 class AppRoutes {
   static const String login = '/login';
@@ -33,6 +35,7 @@ class AppRoutes {
   static const String userTerms = '/user-terms';
   static const String aboutTheApp = '/about-the-app';
   static const String userNotifications = '/user-notifications';
+  static const String chatDetail = '/chat-detail';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -66,6 +69,20 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const AboutTheAppScreen());
       case userNotifications:
         return MaterialPageRoute(builder: (_) => const UserNotificationsScreen());
+      case chatDetail:
+        final args = settings.arguments as ChatDetailArguments;
+        return MaterialPageRoute(
+          builder: (_) => ChatDetailScreen(
+            conversationId: args.conversationId,
+            animalId: args.animalId,
+            animalName: args.animalName,
+            animalDescription: args.animalDescription,
+            sanctuaryName: args.sanctuaryName,
+            sanctuaryEmail: args.sanctuaryEmail,
+            sanctuaryImageUrl: args.sanctuaryImageUrl,
+            profileImageUrl: args.profileImageUrl,
+          ),
+        );
 
       default:
         return MaterialPageRoute(
