@@ -18,6 +18,7 @@ import '../screens/about_the_app_screen.dart';
 import '../screens/user_notifications_screen.dart';
 import '../models/chat_detail_arguments.dart';
 import '../screens/chat_detail_screen.dart';
+import '../screens/animal_detail_screen.dart';
 
 class AppRoutes {
   static const String login = '/login';
@@ -36,6 +37,7 @@ class AppRoutes {
   static const String aboutTheApp = '/about-the-app';
   static const String userNotifications = '/user-notifications';
   static const String chatDetail = '/chat-detail';
+  static const String animalDetail = '/animal-detail';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -82,6 +84,11 @@ class AppRoutes {
             sanctuaryImageUrl: args.sanctuaryImageUrl,
             profileImageUrl: args.profileImageUrl,
           ),
+        );
+      case animalDetail:
+        final args = settings.arguments as Map<String, dynamic>;
+        return MaterialPageRoute(
+          builder: (_) => AnimalDetailScreen(animalId: args['animalId']),
         );
 
       default:

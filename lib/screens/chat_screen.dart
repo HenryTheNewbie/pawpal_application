@@ -241,29 +241,11 @@ class _ChatScreenState extends State<ChatScreen> {
                             lastMsgTime != null &&
                             (userReadTime == null || lastMsgTime.isAfter(userReadTime));
 
-                        print(
-                            'Conversation: $conversationId\n'
-                                '  animalName: $animalName\n'
-                                '  myEmail: $normalizedUserEmail\n'
-                                '  lastSender: $normalizedSenderEmail\n'
-                                '  isMyMessage: $isMyMessage\n'
-                                '  lastMsgTime: $lastMsgTime\n'
-                                '  userReadTime: $userReadTime\n'
-                                '  isUnread: $isUnread\n'
-                        );
-
                         final sanctuaryName = _getSanctuaryNameForAnimal(animalId);
                         final sanctuaryEmail = _getSanctuaryEmailForAnimal(animalId);
                         final sanctuaryImageUrl = _getSanctuaryImageUrlForAnimal(animalId);
 
                         final animalImageUrl = _getAnimalImageUrl(animalId);
-
-                        print(
-                            'animalName: ${animalName ?? 'N/A'}, '
-                                'isUnread: ${isUnread ? 'true' : 'false'}, '
-                                'lastMessage: ${lastMessage.toString().replaceAll('\n', ' ')}, '
-                                'timestamp: ${_formatTimestamp(timestamp)}'
-                        );
 
                         return ChatTile(
                           animalName: animalName,
