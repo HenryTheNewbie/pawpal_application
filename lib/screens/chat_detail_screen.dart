@@ -1199,8 +1199,6 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                         final key = Key('msg-${dtTimestamp?.millisecondsSinceEpoch ?? index}');
                         final showTimestamp = message['showTimestamp'] == true;
 
-                        print('Message: $message, isMe: $isMe, timestamp: $rawTimestamp, dtTimestamp: $dtTimestamp');
-
                         final isLastMyMessage = isMe &&
                             (index == messages.lastIndexWhere((m) => _isMyMessage(m['sender'])));
                         final seenByOther = _otherUserReadTimestamp != null &&
