@@ -79,7 +79,7 @@ class _SanctuaryRegisterScreenState extends State<SanctuaryRegisterScreen> {
       });
 
       if (mounted) {
-        Navigator.pushNamed(context, AppRoutes.login);
+        Navigator.pushNamed(context, AppRoutes.sanctuaryLogin);
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
@@ -212,7 +212,7 @@ class _SanctuaryRegisterScreenState extends State<SanctuaryRegisterScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
-                      "Already have an account?",
+                      "Sanctuary already registered?",
                       style: TextStyle(
                         fontSize: 16,
                         fontFamily: 'Quicksand',
@@ -221,7 +221,7 @@ class _SanctuaryRegisterScreenState extends State<SanctuaryRegisterScreen> {
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.pushNamed(context, AppRoutes.login);
+                        Navigator.pushNamed(context, AppRoutes.sanctuaryLogin);
                       },
                       child: const Text(
                         'Login here.',
