@@ -3,9 +3,9 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import '../firebase_options.dart';
-import '../theme/theme.dart';
-import '../routes/routes.dart';
+import '../../firebase_options.dart';
+import '../../theme/theme.dart';
+import '../../routes/routes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -244,6 +244,49 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                       child: const Text(
                         'Register here.',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontFamily: 'Quicksand',
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "or",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontFamily: 'Quicksand',
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      "Are you a sanctuary?",
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontFamily: 'Quicksand',
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pushNamed(context, AppRoutes.sanctuaryRegister); // Ensure this route exists
+                      },
+                      child: const Text(
+                        'Click here.',
                         style: TextStyle(
                           fontSize: 16,
                           fontFamily: 'Quicksand',

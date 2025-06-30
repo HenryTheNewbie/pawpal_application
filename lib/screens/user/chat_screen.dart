@@ -3,13 +3,13 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import '../firebase_options.dart';
-import '../theme/theme.dart';
-import '../routes/routes.dart';
+import '../../firebase_options.dart';
+import '../../theme/theme.dart';
+import '../../routes/routes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:pawpal_application/widgets/chat/conversation_tile.dart';
-import '../models/chat_detail_arguments.dart';
+import '../../models/chat_detail_arguments.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
