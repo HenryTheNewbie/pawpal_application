@@ -8,15 +8,15 @@ import '../../theme/theme.dart';
 import '../../routes/routes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class SanctuaryLoginScreen extends StatefulWidget {
+  const SanctuaryLoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<SanctuaryLoginScreen> createState() => _SanctuaryLoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
+class _SanctuaryLoginScreenState extends State<SanctuaryLoginScreen> {
+  final _sanctuaryEmailController = TextEditingController();
   final _passwordController = TextEditingController();
 
   bool _rememberMe = false;
@@ -32,15 +32,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _checkLoginStatus() async {
     final prefs = await SharedPreferences.getInstance();
-    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    final isLoggedIn = prefs.getBool('isSanctuaryLoggedIn') ?? false;
 
     if (isLoggedIn && mounted) {
-      Navigator.pushNamed(context, AppRoutes.mainScreen);
+      Navigator.pushNamed(context, AppRoutes.sanctuaryMainScreen);
     }
   }
 
-  Future<void> _loginUser() async {
-    final email = _emailController.text.trim();
+  Future<void> _loginSanctuary() async {
+    final email = _sanctuaryEmailController.text.trim();
     final password = _passwordController.text.trim();
 
     if (email.isEmpty || password.isEmpty) {
@@ -64,22 +64,22 @@ class _LoginScreenState extends State<LoginScreen> {
       final prefs = await SharedPreferences.getInstance();
 
       if (_rememberMe) {
-        await prefs.setBool('isLoggedIn', true);
+        await prefs.setBool('isSanctuaryLoggedIn', true);
       } else {
-        await prefs.remove('isLoggedIn');
+        await prefs.remove('isSanctuaryLoggedIn');
       }
 
       final user = userCredential.user;
       if (user != null) {
         final token = await FirebaseMessaging.instance.getToken();
         if (token != null) {
-          final userRef = FirebaseDatabase.instance.ref().child('users/${user.uid}');
-          await userRef.update({'fcmToken': token});
+          final sanctuaryRef = FirebaseDatabase.instance.ref().child('sanctuaries/${user.uid}');
+          await sanctuaryRef.update({'fcmToken': token});
         }
       }
 
       if (mounted) {
-        Navigator.pushNamed(context, AppRoutes.mainScreen);
+        Navigator.pushNamed(context, AppRoutes.sanctuaryMainScreen);
       }
     } on FirebaseAuthException catch (e) {
       setState(() {
@@ -100,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _sanctuaryEmailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -123,7 +123,17 @@ class _LoginScreenState extends State<LoginScreen> {
                   'assets/images/pawpal_logo_full.png',
                   height: size.height * 0.25,
                 ),
-                const SizedBox(height: 50),
+                const SizedBox(height: 16),
+
+                const Text(
+                  'Sanctuary',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontFamily: 'Quicksand',
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 34),
 
                 if (_error != null) ...[
                   Text(
@@ -134,10 +144,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 ],
 
                 TextField(
-                  controller: _emailController,
+                  controller: _sanctuaryEmailController,
                   keyboardType: TextInputType.emailAddress,
                   decoration: const InputDecoration(
-                    labelText: 'Email',
+                    labelText: 'Sanctuary Email',
                     border: OutlineInputBorder(),
                   ),
                 ),
@@ -211,7 +221,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    onPressed: _isLoading ? null : _loginUser,
+                    onPressed: _isLoading ? null : _loginSanctuary,
                     child: _isLoading
                         ? const SizedBox(
                       height: 20,
@@ -231,7 +241,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
-                      "Don't have an account?",
+                      "Sanctuary not registered?",
                       style: TextStyle(
                         fontSize: 16,
                         fontFamily: 'Quicksand',
@@ -240,7 +250,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.pushNamed(context, AppRoutes.register);
+                        Navigator.pushNamed(context, AppRoutes.sanctuaryRegister);
                       },
                       child: const Text(
                         'Register here.',
@@ -274,7 +284,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text(
-                      "Are you a sanctuary?",
+                      "Not a sanctuary?",
                       style: TextStyle(
                         fontSize: 16,
                         fontFamily: 'Quicksand',
@@ -283,7 +293,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.pushNamed(context, AppRoutes.sanctuaryLogin);
+                        Navigator.pushNamed(context, AppRoutes.login);
                       },
                       child: const Text(
                         'Click here.',

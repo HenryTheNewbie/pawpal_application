@@ -20,7 +20,14 @@ import '../models/chat_detail_arguments.dart';
 import '../screens/user/chat_detail_screen.dart';
 import '../screens/user/animal_detail_screen.dart';
 
+import '../screens/sanctuary/sanctuary_login_screen.dart';
 import '../screens/sanctuary/sanctuary_register_screen.dart';
+import '../screens/sanctuary/sanctuary_forgot_password_screen.dart';
+import '../screens/sanctuary/sanctuary_email_verification_screen.dart';
+import '../screens/sanctuary/sanctuary_main_screen.dart';
+import '../screens/sanctuary/sanctuary_add_animal_screen.dart';
+import '../screens/sanctuary/sanctuary_chat_screen.dart';
+import '../screens/sanctuary/sanctuary_profile_screen.dart';
 
 class AppRoutes {
   static const String login = '/login';
@@ -41,7 +48,14 @@ class AppRoutes {
   static const String chatDetail = '/chat-detail';
   static const String animalDetail = '/animal-detail';
 
+  static const String sanctuaryLogin = '/sanctuary-login';
   static const String sanctuaryRegister = '/sanctuary-register';
+  static const String sanctuaryForgotPassword = '/sanctuary-forgot-password';
+  static const String sanctuaryEmailVerification = '/sanctuary-email-verification';
+  static const String sanctuaryMainScreen = '/sanctuary-main-screen';
+  static const String sanctuaryAddAnimal = '/sanctuary-add-animal';
+  static const String sanctuaryChat = '/sanctuary-chat';
+  static const String sanctuaryProfile = '/sanctuary-profile';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -95,8 +109,22 @@ class AppRoutes {
           builder: (_) => AnimalDetailScreen(animalId: args['animalId']),
         );
 
+      case sanctuaryLogin:
+        return MaterialPageRoute(builder: (_) => const SanctuaryLoginScreen());
       case sanctuaryRegister:
         return MaterialPageRoute(builder: (_) => const SanctuaryRegisterScreen());
+      case sanctuaryForgotPassword:
+        return MaterialPageRoute(builder: (_) => const SanctuaryForgotPasswordScreen());
+      case sanctuaryEmailVerification:
+        return MaterialPageRoute(builder: (_) => const SanctuaryEmailVerificationScreen());
+      case sanctuaryMainScreen:
+        return MaterialPageRoute(builder: (_) => const SanctuaryMainScreen());
+      case sanctuaryAddAnimal:
+        return MaterialPageRoute(builder: (_) => const SanctuaryAddAnimalScreen());
+      case sanctuaryChat:
+        return MaterialPageRoute(builder: (_) => const SanctuaryChatScreen());
+      case sanctuaryProfile:
+        return MaterialPageRoute(builder: (_) => const SanctuaryProfileScreen());
 
       default:
         return MaterialPageRoute(
