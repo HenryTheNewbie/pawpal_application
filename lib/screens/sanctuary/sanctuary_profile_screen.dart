@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../../firebase_options.dart';
+import '../../theme/colors.dart';
 import '../../theme/theme.dart';
 import '../../routes/routes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -17,9 +18,12 @@ class SanctuaryProfileScreen extends StatefulWidget {
 
 class _SanctuaryProfileScreenState extends State<SanctuaryProfileScreen> {
   bool _isLoading = false;
-  String? _username;
-  String? _bio;
+  String? _sanctuaryName;
+  String? _description;
   String? _profilePhotoUrl;
+  String? _contactPhone;
+  String? _location;
+  String? _website;
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref();
@@ -27,23 +31,26 @@ class _SanctuaryProfileScreenState extends State<SanctuaryProfileScreen> {
   @override
   void initState() {
     super.initState();
-    _loadUserProfile();
+    _loadSanctuaryProfile();
   }
 
-  Future<void> _loadUserProfile() async {
+  Future<void> _loadSanctuaryProfile() async {
     final user = _auth.currentUser;
     if (user == null) return;
 
     setState(() => _isLoading = true);
 
     try {
-      final snapshot = await _dbRef.child('users').child(user.uid).once();
+      final snapshot = await _dbRef.child('sanctuaries').child(user.uid).once();
       final data = snapshot.snapshot.value as Map?;
 
       setState(() {
-        _username = data?['username'] ?? 'Unknown';
-        _bio = data?['bio'] ?? 'No bio set.';
+        _sanctuaryName = data?['organizationName'] ?? 'Unknown Sanctuary';
+        _description = data?['description'] ?? 'No description set.';
         _profilePhotoUrl = data?['profilePhotoUrl'];
+        _contactPhone = data?['contactPhone'] ?? '';
+        _location = data?['location'] ?? '';
+        _website = data?['website'] ?? '';
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -55,8 +62,8 @@ class _SanctuaryProfileScreenState extends State<SanctuaryProfileScreen> {
   }
 
   void _navigateToEditProfile() {
-    Navigator.pushNamed(context, AppRoutes.editUserProfile).then((_) {
-      _loadUserProfile();
+    Navigator.pushNamed(context, AppRoutes.editSanctuaryProfile).then((_) {
+      _loadSanctuaryProfile();
     });
   }
 
@@ -77,7 +84,7 @@ class _SanctuaryProfileScreenState extends State<SanctuaryProfileScreen> {
               iconSize: 30,
               icon: const Icon(CupertinoIcons.gear_alt, color: Colors.black),
               onPressed: () {
-                Navigator.pushNamed(context, AppRoutes.userSettings);
+                Navigator.pushNamed(context, AppRoutes.sanctuarySettings);
               },
             ),
           ),
@@ -106,7 +113,7 @@ class _SanctuaryProfileScreenState extends State<SanctuaryProfileScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _username ?? 'Loading...',
+                        _sanctuaryName ?? 'Loading...',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
@@ -116,7 +123,7 @@ class _SanctuaryProfileScreenState extends State<SanctuaryProfileScreen> {
                       const SizedBox(height: 4),
 
                       Text(
-                        _bio ?? '',
+                        _description ?? '',
                         style: const TextStyle(
                           fontSize: 16,
                           fontFamily: 'Quicksand',
@@ -127,6 +134,74 @@ class _SanctuaryProfileScreenState extends State<SanctuaryProfileScreen> {
                 ),
               ],
             ),
+            const SizedBox(height: 24),
+
+            if (_location != null && _location!.isNotEmpty) ...[
+              Row(
+                children: [
+                  const Icon(
+                      CupertinoIcons.placemark,
+                      size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _location!,
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontFamily: 'Quicksand',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ],
+
+            if (_contactPhone != null && _contactPhone!.isNotEmpty) ...[
+              Row(
+                children: [
+                  const Icon(
+                    CupertinoIcons.phone,
+                    size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _contactPhone!,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontFamily: 'Quicksand',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+            ],
+
+            if (_website != null && _website!.isNotEmpty) ...[
+              Row(
+                children: [
+                  const Icon(
+                      CupertinoIcons.globe,
+                      size: 18,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _website!,
+                      style: const TextStyle(
+                        color: Colors.blue,
+                        fontSize: 14,
+                        fontFamily: 'Quicksand',
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+
             const SizedBox(height: 24),
 
             SizedBox(
@@ -155,7 +230,7 @@ class _SanctuaryProfileScreenState extends State<SanctuaryProfileScreen> {
                     valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
                   ),
                 )
-                    : const Text('Edit Profile'),
+                    : const Text('Edit Sanctuary Profile')
               ),
             ),
             const SizedBox(height: 32),

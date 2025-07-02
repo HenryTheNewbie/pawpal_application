@@ -28,6 +28,13 @@ import '../screens/sanctuary/sanctuary_main_screen.dart';
 import '../screens/sanctuary/sanctuary_add_animal_screen.dart';
 import '../screens/sanctuary/sanctuary_chat_screen.dart';
 import '../screens/sanctuary/sanctuary_profile_screen.dart';
+import '../screens/sanctuary/edit_sanctuary_profile_screen.dart';
+import '../screens/sanctuary/sanctuary_settings_screen.dart';
+import '../screens/sanctuary/sanctuary_faq_screen.dart';
+import '../screens/sanctuary/sanctuary_privacy_policy_screen.dart';
+import '../screens/sanctuary/sanctuary_terms_screen.dart';
+import '../screens/sanctuary/sanctuary_about_the_app_screen.dart';
+import '../screens/sanctuary/sanctuary_notifications_screen.dart';
 
 class AppRoutes {
   static const String login = '/login';
@@ -56,6 +63,13 @@ class AppRoutes {
   static const String sanctuaryAddAnimal = '/sanctuary-add-animal';
   static const String sanctuaryChat = '/sanctuary-chat';
   static const String sanctuaryProfile = '/sanctuary-profile';
+  static const String editSanctuaryProfile = '/edit-sanctuary-profile';
+  static const String sanctuarySettings = '/sanctuary-settings';
+  static const String sanctuaryFaq = '/sanctuary-faq';
+  static const String sanctuaryPrivacyPolicy = '/sanctuary-privacy-policy';
+  static const String sanctuaryTerms = '/sanctuary-terms';
+  static const String sanctuaryAboutTheApp = '/sanctuary-about-the-app';
+  static const String sanctuaryNotifications = '/sanctuary-notifications';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -125,6 +139,20 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const SanctuaryChatScreen());
       case sanctuaryProfile:
         return MaterialPageRoute(builder: (_) => const SanctuaryProfileScreen());
+      case editSanctuaryProfile:
+        return MaterialPageRoute(builder: (_) => const EditSanctuaryProfileScreen());
+      case sanctuarySettings:
+        return MaterialPageRoute(builder: (_) => const SanctuarySettingsScreen());
+      case sanctuaryFaq:
+        return MaterialPageRoute(builder: (_) => const SanctuaryFaqScreen());
+      case sanctuaryPrivacyPolicy:
+        return MaterialPageRoute(builder: (_) => const SanctuaryPrivacyPolicyScreen());
+      case sanctuaryTerms:
+        return MaterialPageRoute(builder: (_) => const SanctuaryTermsScreen());
+      case sanctuaryAboutTheApp:
+        return MaterialPageRoute(builder: (_) => const SanctuaryAboutTheAppScreen());
+      case sanctuaryNotifications:
+        return MaterialPageRoute(builder: (_) => const SanctuaryNotificationsScreen());
 
       default:
         return MaterialPageRoute(
