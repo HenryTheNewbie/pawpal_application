@@ -189,7 +189,7 @@ class _SanctuaryLoginScreenState extends State<SanctuaryLoginScreen> {
                     ),
                     TextButton(
                       onPressed: () {
-                        Navigator.pushNamed(context, AppRoutes.forgotPassword);
+                        Navigator.pushNamed(context, AppRoutes.sanctuaryForgotPassword);
                       },
                       child: Text(
                         'Forgot Password?',
