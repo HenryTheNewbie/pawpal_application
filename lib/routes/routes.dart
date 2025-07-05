@@ -35,6 +35,9 @@ import '../screens/sanctuary/sanctuary_privacy_policy_screen.dart';
 import '../screens/sanctuary/sanctuary_terms_screen.dart';
 import '../screens/sanctuary/sanctuary_about_the_app_screen.dart';
 import '../screens/sanctuary/sanctuary_notifications_screen.dart';
+import '../models/sanctuary_chat_detail_arguments.dart';
+import '../screens/sanctuary/sanctuary_chat_screen_by_animal.dart';
+import '../screens/sanctuary/sanctuary_chat_detail_screen.dart';
 
 class AppRoutes {
   static const String login = '/login';
@@ -70,6 +73,8 @@ class AppRoutes {
   static const String sanctuaryTerms = '/sanctuary-terms';
   static const String sanctuaryAboutTheApp = '/sanctuary-about-the-app';
   static const String sanctuaryNotifications = '/sanctuary-notifications';
+  static const String sanctuaryChatByAnimal = '/sanctuary-chat-by-animal';
+  static const String sanctuaryChatDetail = '/sanctuary-chat-detail';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -153,6 +158,25 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const SanctuaryAboutTheAppScreen());
       case sanctuaryNotifications:
         return MaterialPageRoute(builder: (_) => const SanctuaryNotificationsScreen());
+      case sanctuaryChatByAnimal:
+        final args = settings.arguments as Map<String, dynamic>;
+        return MaterialPageRoute(
+          builder: (_) => SanctuaryChatScreenByAnimal(animalId: args['animalId']),
+        );
+      case sanctuaryChatDetail:
+        final args = settings.arguments as SanctuaryChatDetailArguments;
+        return MaterialPageRoute(
+          builder: (_) => SanctuaryChatDetailScreen(
+            conversationId: args.conversationId,
+            animalId: args.animalId,
+            animalName: args.animalName,
+            animalDescription: args.animalDescription,
+            username: args.username,
+            email: args.email,
+            userImageUrl: args.userImageUrl,
+            profileImageUrl: args.profileImageUrl,
+          ),
+        );
 
       default:
         return MaterialPageRoute(
