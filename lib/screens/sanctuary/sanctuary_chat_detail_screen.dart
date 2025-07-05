@@ -17,33 +17,33 @@ import 'package:image_picker/image_picker.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 import 'package:intl/intl.dart';
 
-class ChatDetailScreen extends StatefulWidget {
+class SanctuaryChatDetailScreen extends StatefulWidget {
   final String conversationId;
   final String animalId;
   final String animalName;
   final String animalDescription;
-  final String sanctuaryName;
-  final String sanctuaryEmail;
-  final String sanctuaryImageUrl;
+  final String username;
+  final String email;
+  final String userImageUrl;
   final String profileImageUrl;
 
-  const ChatDetailScreen({
+  const SanctuaryChatDetailScreen({
     super.key,
     required this.conversationId,
     required this.animalId,
     required this.animalName,
     required this.animalDescription,
-    required this.sanctuaryName,
-    required this.sanctuaryEmail,
-    required this.sanctuaryImageUrl,
+    required this.username,
+    required this.email,
+    required this.userImageUrl,
     required this.profileImageUrl,
   });
 
   @override
-  State<ChatDetailScreen> createState() => _ChatDetailScreenState();
+  State<SanctuaryChatDetailScreen> createState() => _SanctuaryChatDetailScreenState();
 }
 
-class _ChatDetailScreenState extends State<ChatDetailScreen> {
+class _SanctuaryChatDetailScreenState extends State<SanctuaryChatDetailScreen> {
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
   final _userEmail = FirebaseAuth.instance.currentUser?.email;
@@ -216,7 +216,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     return '${date.month}/${date.day}/${date.year}';
   }
 
-  void _showSanctuaryInfoSheet() {
+  void _showAdopterInfoSheet() {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -233,9 +233,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
           builder: (context, scrollController) {
             return FutureBuilder<DatabaseEvent>(
               future: FirebaseDatabase.instance
-                  .ref('sanctuaries')
+                  .ref('users')
                   .orderByChild('email')
-                  .equalTo(widget.sanctuaryEmail)
+                  .equalTo(widget.email)
                   .once(),
               builder: (context, snapshot) {
                 if (!snapshot.hasData || snapshot.data!.snapshot.value == null) {
@@ -291,7 +291,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                                       Center(
                                         child: InteractiveViewer(
                                           child: Image.network(
-                                            widget.sanctuaryImageUrl,
+                                            widget.userImageUrl,
                                             fit: BoxFit.contain,
                                           ),
                                         ),
@@ -311,14 +311,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                             );
                           },
                           child: CircleAvatar(
-                            backgroundImage: NetworkImage(widget.sanctuaryImageUrl),
+                            backgroundImage: NetworkImage(widget.userImageUrl),
                             radius: 64,
                           ),
                         ),
                         const SizedBox(height: 20),
 
                         Text(
-                          data['organizationName'] ?? 'Sanctuary',
+                          data['username'] ?? 'Unknown User',
                           style: const TextStyle(
                             fontSize: 20,
                             fontFamily: 'Quicksand',
@@ -337,83 +337,15 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           ),
                         const SizedBox(height: 8),
 
-                        if (data['contactPhone'] != null)
+                        if (data['bio'] != null)
                           Text(
-                            data['contactPhone'],
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontFamily: 'Quicksand',
-                            ),
-                          ),
-                        const SizedBox(height: 16),
-
-                        if (data['description'] != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 12),
-                            child: Text(
-                              data['description'],
+                              data['bio'],
                               textAlign: TextAlign.center,
                               style: const TextStyle(
                                 fontSize: 14,
                                 fontFamily: 'Quicksand',
                               ),
                             ),
-                          ),
-
-                        if (data['location'] != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 12),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  CupertinoIcons.placemark,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 6),
-
-                                Text(
-                                  data['location'],
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontFamily: 'Quicksand',
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                        if (data['website'] != null)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 12),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  CupertinoIcons.globe,
-                                  size: 18,
-                                ),
-                                const SizedBox(width: 6),
-
-                                GestureDetector(
-                                  onTap: () async {
-                                    final url = Uri.parse(data['website']);
-                                    // if (await canLaunchUrl(url)) {
-                                    //   await launchUrl(url);
-                                    // }
-                                  },
-                                  child: Text(
-                                    data['website'],
-                                    style: const TextStyle(
-                                      color: Colors.blue,
-                                      fontSize: 14,
-                                      fontFamily: 'Quicksand',
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
                       ],
                     ),
                   ),
@@ -969,21 +901,21 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         ),
         titleSpacing: 6,
         title: GestureDetector(
+          onTap: _showAdopterInfoSheet,
           behavior: HitTestBehavior.opaque,
-          onTap: _showSanctuaryInfoSheet,
           child: SizedBox(
             height: kToolbarHeight,
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 CircleAvatar(
-                  backgroundImage: NetworkImage(widget.sanctuaryImageUrl),
+                  backgroundImage: NetworkImage(widget.userImageUrl),
                   radius: 26,
                 ),
                 const SizedBox(width: 12),
 
                 Text(
-                  widget.sanctuaryName,
+                  widget.username,
                   style: const TextStyle(
                     fontSize: 18,
                     fontFamily: 'Quicksand',
