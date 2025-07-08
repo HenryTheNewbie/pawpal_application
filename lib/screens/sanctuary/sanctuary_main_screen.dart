@@ -6,7 +6,7 @@ import 'package:pawpal_application/screens/sanctuary/sanctuary_chat_screen.dart'
 import '../../firebase_options.dart';
 import '../../theme/theme.dart';
 import '../../routes/routes.dart';
-import 'sanctuary_add_animal_screen.dart';
+import 'sanctuary_animal_management_screen.dart';
 import 'sanctuary_chat_screen_by_animal.dart';
 import 'sanctuary_profile_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,7 +23,7 @@ class _SanctuaryMainScreenState extends State<SanctuaryMainScreen> {
   int _selectedIndex = 0;
 
   static const List<Widget> _screens = [
-    SanctuaryAddAnimalScreen(),
+    SanctuaryAnimalManagementScreen(),
     SanctuaryChatScreen(),
     SanctuaryProfileScreen(),
   ];
@@ -65,7 +65,7 @@ class _SanctuaryMainScreenState extends State<SanctuaryMainScreen> {
             items: const [
               BottomNavigationBarItem(
                 icon: Icon(CupertinoIcons.paw),
-                label: 'Discover',
+                label: 'Animals',
               ),
               BottomNavigationBarItem(
                 icon: Icon(CupertinoIcons.chat_bubble_2),

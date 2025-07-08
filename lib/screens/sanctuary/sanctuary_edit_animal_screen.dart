@@ -11,15 +11,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:image_picker/image_picker.dart';
 
-class SanctuaryAddAnimalScreen extends StatefulWidget {
-  const SanctuaryAddAnimalScreen({Key? key}) : super(key: key);
+class SanctuaryEditAnimalScreen extends StatefulWidget {
+  final String? animalId;
+
+  const SanctuaryEditAnimalScreen({Key? key, this.animalId}) : super(key: key);
 
   @override
-  State<SanctuaryAddAnimalScreen> createState() => _SanctuaryAddAnimalScreenState();
+  State<SanctuaryEditAnimalScreen> createState() => _SanctuaryEditAnimalScreenState();
 }
 
-class _SanctuaryAddAnimalScreenState extends State<SanctuaryAddAnimalScreen> {
-  final List<File> _selectedAttachments = [];
+class _SanctuaryEditAnimalScreenState extends State<SanctuaryEditAnimalScreen> {
+  final List<String> _photoUrls = [];
+  final List<File> _loadedAttachments = [];
+
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _ageController = TextEditingController();
@@ -39,10 +43,34 @@ class _SanctuaryAddAnimalScreenState extends State<SanctuaryAddAnimalScreen> {
 
   bool _showAttachmentOptionsCard = false;
 
-  Future<List<String>> _uploadAnimalImages() async {
+  @override
+  void initState() {
+    super.initState();
+    if (widget.animalId != null) {
+      _loadAnimalData();
+    }
+  }
+
+  Future<String?> _getMatchedAnimalKey() async {
+    final snapshot = await _db.child('animals').get();
+
+    if (snapshot.exists) {
+      final raw = Map<String, dynamic>.from(snapshot.value as Map);
+      for (var entry in raw.entries) {
+        final animal = Map<String, dynamic>.from(entry.value);
+        if (animal['id'] == widget.animalId) {
+          return entry.key;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  Future<List<String>> _uploadNewAnimalImages() async {
     List<String> urls = [];
 
-    for (var file in _selectedAttachments) {
+    for (var file in _loadedAttachments) {
       final fileName = '${_auth.currentUser!.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final ref = FirebaseStorage.instance.ref().child('animal_images').child(fileName);
       await ref.putFile(file);
@@ -53,7 +81,53 @@ class _SanctuaryAddAnimalScreenState extends State<SanctuaryAddAnimalScreen> {
     return urls;
   }
 
-  Future<void> _saveAnimal() async {
+  Future<void> _loadAnimalData() async {
+    try {
+      final animalSnap = await _db.child('animals').get();
+
+      if (animalSnap.exists) {
+        final raw = Map<String, dynamic>.from(animalSnap.value as Map);
+
+        for (var entry in raw.entries) {
+          final animal = Map<String, dynamic>.from(entry.value);
+          if (animal['id'] == widget.animalId) {
+
+            setState(() {
+              _nameController.text = animal['name'] ?? '';
+              _descriptionController.text = animal['description'] ?? '';
+              _ageController.text = (animal['age'] ?? '').toString();
+              _speciesController.text = animal['species'] ?? '';
+              _breedController.text = animal['breed'] ?? '';
+              _healthStatusController.text = animal['healthStatus'] ?? '';
+              _selectedGender = animal['gender'];
+              _selectedAgeCategory = animal['ageCategory'];
+              _selectedSize = animal['size'];
+              _selectedAdoptionStatus = animal['adoptionStatus'];
+
+              _photoUrls.clear();
+              final rawUrls = animal['photoUrls'];
+              if (rawUrls is List) {
+                _photoUrls.addAll(rawUrls.whereType<String>());
+              }
+            });
+
+            break;
+          }
+        }
+      } else {
+        debugPrint('No animals found in database.');
+      }
+    } catch (e) {
+      debugPrint('Error loading animal: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Failed to load animal data.')),
+        );
+      }
+    }
+  }
+
+  Future<void> _saveChanges() async {
     final user = _auth.currentUser;
     if (user == null) {
       _showMessage('No logged-in user found.');
@@ -107,18 +181,25 @@ class _SanctuaryAddAnimalScreenState extends State<SanctuaryAddAnimalScreen> {
       return;
     }
 
-    if (_selectedAttachments.isEmpty) {
-      _showMessage('Please add at least one photo.');
+    final totalImages = _photoUrls.length + _loadedAttachments.length;
+    if (totalImages < 1) {
+      _showMessage('Please ensure at least one photo exists.');
       setState(() => _isSaving = false);
       return;
     }
 
     try {
-      final photoUrls = await _uploadAnimalImages();
-      final id = DateTime.now().millisecondsSinceEpoch.toString();
+      final matchedKey = await _getMatchedAnimalKey();
+      if (matchedKey == null) {
+        _showMessage('Animal not found. Cannot save changes.');
+        return;
+      }
 
-      final animalData = {
-        'id': id,
+      final newImageUrls = await _uploadNewAnimalImages();
+      final finalImageUrls = [..._photoUrls, ...newImageUrls];
+
+      final updatedAnimalData = {
+        'id': widget.animalId,
         'name': name,
         'description': _descriptionController.text.trim(),
         'gender': _selectedGender,
@@ -129,17 +210,17 @@ class _SanctuaryAddAnimalScreenState extends State<SanctuaryAddAnimalScreen> {
         'size': _selectedSize,
         'healthStatus': _healthStatusController.text.trim(),
         'adoptionStatus': _selectedAdoptionStatus,
-        'photoUrls': photoUrls,
-        'createdAt': DateTime.now().toIso8601String(),
+        'photoUrls': finalImageUrls,
         'uploadedBy': user.email,
       };
 
-      await _db.child('animals').child(id).set(animalData);
+      await _db.child('animals').child(matchedKey).update(updatedAnimalData);
 
-      _showMessage('Animal added successfully!');
-      Navigator.pop(context, true);
+      _showMessage('Changes saved successfully!');
+      if (mounted)
+        Navigator.pop(context, true);
     } catch (e) {
-      _showMessage('Error: $e');
+      _showMessage('Failed to update animal. Please try again.');
     } finally {
       setState(() => _isSaving = false);
     }
@@ -157,7 +238,7 @@ class _SanctuaryAddAnimalScreenState extends State<SanctuaryAddAnimalScreen> {
 
     if (pickedFile != null) {
       setState(() {
-        _selectedAttachments.add(File(pickedFile.path));
+        _loadedAttachments.add(File(pickedFile.path));
         _showAttachmentOptionsCard = false;
       });
     }
@@ -296,7 +377,7 @@ class _SanctuaryAddAnimalScreenState extends State<SanctuaryAddAnimalScreen> {
                 const SizedBox(height: 4),
 
                 const Text(
-                  'Add New Animal',
+                  'Edit Animal',
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -315,7 +396,7 @@ class _SanctuaryAddAnimalScreenState extends State<SanctuaryAddAnimalScreen> {
                 const SizedBox(height: 12),
 
                 ElevatedButton.icon(
-                  onPressed: _selectedAttachments.length >= 9
+                  onPressed: _loadedAttachments.length >= 9
                       ? null
                       : () {
                     setState(() {
@@ -324,36 +405,48 @@ class _SanctuaryAddAnimalScreenState extends State<SanctuaryAddAnimalScreen> {
                   },
                   icon: const Icon(Icons.add_a_photo),
                   label: Text(
-                    _selectedAttachments.length >= 9
+                    _loadedAttachments.length >= 9
                         ? 'Max Images Reached'
                         : 'Add Images',
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: _selectedAttachments.length >= 9 ? Colors.grey.shade300 : Colors.white,
-                    foregroundColor: _selectedAttachments.length >= 9 ? Colors.black45 : Colors.black,
+                    backgroundColor: _loadedAttachments.length >= 9
+                        ? Colors.grey.shade300
+                        : Colors.white,
+                    foregroundColor: _loadedAttachments.length >= 9
+                        ? Colors.black45
+                        : Colors.black,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(50),
                     ),
                   ),
                 ),
 
-                if (_selectedAttachments.isNotEmpty) ...[
+                if (_photoUrls.isNotEmpty || _loadedAttachments.isNotEmpty) ...[
                   const SizedBox(height: 12),
                   Container(
                     height: 100,
                     padding: const EdgeInsets.symmetric(vertical: 10),
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
-                      itemCount: _selectedAttachments.length,
+                      itemCount: _photoUrls.length + _loadedAttachments.length,
                       separatorBuilder: (_, __) => const SizedBox(width: 10),
                       itemBuilder: (context, index) {
-                        final file = _selectedAttachments[index];
+                        final isNetworkImage = index < _photoUrls.length;
+
                         return Stack(
                           children: [
                             ClipRRect(
                               borderRadius: BorderRadius.circular(8),
-                              child: Image.file(
-                                File(file.path),
+                              child: isNetworkImage
+                                  ? Image.network(
+                                _photoUrls[index],
+                                height: 80,
+                                width: 80,
+                                fit: BoxFit.cover,
+                              )
+                                  : Image.file(
+                                _loadedAttachments[index - _photoUrls.length],
                                 height: 80,
                                 width: 80,
                                 fit: BoxFit.cover,
@@ -364,7 +457,13 @@ class _SanctuaryAddAnimalScreenState extends State<SanctuaryAddAnimalScreen> {
                               right: 4,
                               child: GestureDetector(
                                 onTap: () {
-                                  setState(() => _selectedAttachments.removeAt(index));
+                                  setState(() {
+                                    if (isNetworkImage) {
+                                      _photoUrls.removeAt(index);
+                                    } else {
+                                      _loadedAttachments.removeAt(index - _photoUrls.length);
+                                    }
+                                  });
                                 },
                                 child: Container(
                                   decoration: const BoxDecoration(
@@ -720,7 +819,7 @@ class _SanctuaryAddAnimalScreenState extends State<SanctuaryAddAnimalScreen> {
                       setState(() {
                         _isSaving = true;
                       });
-                      await _saveAnimal();
+                      await _saveChanges();
                       setState(() {
                         _isSaving = false;
                       });
@@ -734,7 +833,7 @@ class _SanctuaryAddAnimalScreenState extends State<SanctuaryAddAnimalScreen> {
                         valueColor: AlwaysStoppedAnimation<Color>(Colors.black),
                       ),
                     )
-                        : const Text('Add Animal'),
+                        : const Text('Save Changes'),
                   ),
                 ),
                 const SizedBox(height: 16),

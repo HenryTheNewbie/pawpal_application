@@ -25,7 +25,7 @@ import '../screens/sanctuary/sanctuary_register_screen.dart';
 import '../screens/sanctuary/sanctuary_forgot_password_screen.dart';
 import '../screens/sanctuary/sanctuary_email_verification_screen.dart';
 import '../screens/sanctuary/sanctuary_main_screen.dart';
-import '../screens/sanctuary/sanctuary_add_animal_screen.dart';
+import '../screens/sanctuary/sanctuary_animal_management_screen.dart';
 import '../screens/sanctuary/sanctuary_chat_screen.dart';
 import '../screens/sanctuary/sanctuary_profile_screen.dart';
 import '../screens/sanctuary/edit_sanctuary_profile_screen.dart';
@@ -38,6 +38,8 @@ import '../screens/sanctuary/sanctuary_notifications_screen.dart';
 import '../models/sanctuary_chat_detail_arguments.dart';
 import '../screens/sanctuary/sanctuary_chat_screen_by_animal.dart';
 import '../screens/sanctuary/sanctuary_chat_detail_screen.dart';
+import '../screens/sanctuary/sanctuary_add_animal_screen.dart';
+import '../screens/sanctuary/sanctuary_edit_animal_screen.dart';
 
 class AppRoutes {
   static const String login = '/login';
@@ -63,7 +65,7 @@ class AppRoutes {
   static const String sanctuaryForgotPassword = '/sanctuary-forgot-password';
   static const String sanctuaryEmailVerification = '/sanctuary-email-verification';
   static const String sanctuaryMainScreen = '/sanctuary-main-screen';
-  static const String sanctuaryAddAnimal = '/sanctuary-add-animal';
+  static const String sanctuaryAnimalManagement = '/sanctuary-animal-management';
   static const String sanctuaryChat = '/sanctuary-chat';
   static const String sanctuaryProfile = '/sanctuary-profile';
   static const String editSanctuaryProfile = '/edit-sanctuary-profile';
@@ -75,6 +77,8 @@ class AppRoutes {
   static const String sanctuaryNotifications = '/sanctuary-notifications';
   static const String sanctuaryChatByAnimal = '/sanctuary-chat-by-animal';
   static const String sanctuaryChatDetail = '/sanctuary-chat-detail';
+  static const String sanctuaryAddAnimal = '/sanctuary-add-animal';
+  static const String sanctuaryEditAnimal = '/sanctuary-edit-animal';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -138,8 +142,8 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const SanctuaryEmailVerificationScreen());
       case sanctuaryMainScreen:
         return MaterialPageRoute(builder: (_) => const SanctuaryMainScreen());
-      case sanctuaryAddAnimal:
-        return MaterialPageRoute(builder: (_) => const SanctuaryAddAnimalScreen());
+      case sanctuaryAnimalManagement:
+        return MaterialPageRoute(builder: (_) => const SanctuaryAnimalManagementScreen());
       case sanctuaryChat:
         return MaterialPageRoute(builder: (_) => const SanctuaryChatScreen());
       case sanctuaryProfile:
@@ -176,6 +180,13 @@ class AppRoutes {
             userImageUrl: args.userImageUrl,
             profileImageUrl: args.profileImageUrl,
           ),
+        );
+      case sanctuaryAddAnimal:
+        return MaterialPageRoute(builder: (_) => const SanctuaryAddAnimalScreen());
+      case sanctuaryEditAnimal:
+        final args = settings.arguments as Map<String, dynamic>;
+        return MaterialPageRoute(
+          builder: (_) => SanctuaryEditAnimalScreen(animalId: args['animalId']),
         );
 
       default:
