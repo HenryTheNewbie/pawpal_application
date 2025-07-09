@@ -83,6 +83,8 @@ class _SanctuaryChatDetailScreenState extends State<SanctuaryChatDetailScreen> {
             setState(() {
               _otherUserReadTimestamp = entry.value.toString();
             });
+          } else {
+            _lastReadTimestamp = entry.value.toString();
           }
         }
       }
@@ -718,16 +720,39 @@ class _SanctuaryChatDetailScreenState extends State<SanctuaryChatDetailScreen> {
     }
   }
 
-  void _updateReadStatusIfNewer(dynamic timestamp) {
-    if (_lastReadTimestamp == null || timestamp.compareTo(_lastReadTimestamp!) > 0) {
+  void _loadReadStatus() async {
+    final safeEmail = _userEmail!.replaceAll('.', '_');
+    final ref = FirebaseDatabase.instance
+        .ref('conversations/${widget.conversationId}/readStatus/$safeEmail');
+
+    final snapshot = await ref.get();
+    if (snapshot.exists && snapshot.value is String) {
       setState(() {
-        _lastReadTimestamp = timestamp;
+        _lastReadTimestamp = snapshot.value as String;
+      });
+    }
+  }
+
+  void _updateReadStatusIfNewer(DateTime newTime) {
+    final newIso = newTime.toUtc().toIso8601String();
+
+    final lastRead = _lastReadTimestamp != null
+        ? DateTime.tryParse(_lastReadTimestamp!)
+        : null;
+
+    if (lastRead == null || newTime.isAfter(lastRead)) {
+      final safeEmail = _userEmail!.replaceAll('.', '_');
+
+      setState(() {
+        _lastReadTimestamp = newIso;
       });
 
-      final safeEmail = _userEmail!.replaceAll('.', '_');
       FirebaseDatabase.instance
           .ref('conversations/${widget.conversationId}/readStatus/$safeEmail')
-          .set(timestamp);
+          .set(newIso)
+          .catchError((e) {
+            print('Error updating read status: $e');
+      });
     }
   }
 
@@ -1085,7 +1110,7 @@ class _SanctuaryChatDetailScreenState extends State<SanctuaryChatDetailScreen> {
                           dtTimestamp = DateTime.tryParse(rawTimestamp);
                         }
 
-                        final key = Key('msg-${dtTimestamp?.millisecondsSinceEpoch ?? index}');
+                        final key = ValueKey('msg-$index-${dtTimestamp?.millisecondsSinceEpoch ?? ''}');
                         final showTimestamp = message['showTimestamp'] == true;
 
                         final isLastMyMessage = isMe &&
@@ -1114,7 +1139,9 @@ class _SanctuaryChatDetailScreenState extends State<SanctuaryChatDetailScreen> {
                               key: key,
                               onVisibilityChanged: (info) {
                                 if (info.visibleFraction > 0.7 && dtTimestamp != null) {
-                                  _updateReadStatusIfNewer(dtTimestamp.millisecondsSinceEpoch);
+                                  _updateReadStatusIfNewer(
+                                    dtTimestamp.toUtc(),
+                                  );
                                 }
                               },
                               child: Align(

@@ -25,6 +25,10 @@ class _SanctuaryProfileScreenState extends State<SanctuaryProfileScreen> {
   String? _location;
   String? _website;
 
+  int _animalCount = 0;
+  int _totalLikes = 0;
+  int _activeConversations = 0;
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref();
 
@@ -32,6 +36,7 @@ class _SanctuaryProfileScreenState extends State<SanctuaryProfileScreen> {
   void initState() {
     super.initState();
     _loadSanctuaryProfile();
+    _loadStats();
   }
 
   Future<void> _loadSanctuaryProfile() async {
@@ -65,6 +70,108 @@ class _SanctuaryProfileScreenState extends State<SanctuaryProfileScreen> {
     Navigator.pushNamed(context, AppRoutes.editSanctuaryProfile).then((_) {
       _loadSanctuaryProfile();
     });
+  }
+
+  Future<void> _loadStats() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    try {
+      final animalsSnapshot = await _dbRef.child('animals').orderByChild('uploadedBy').equalTo(user.email).once();
+      final animalsData = animalsSnapshot.snapshot.value as Map?;
+      final myAnimalIds = <String>[];
+
+      if (animalsData != null) {
+        myAnimalIds.addAll(animalsData.keys.map((e) => e.toString()));
+      }
+
+      setState(() {
+        _animalCount = myAnimalIds.length;
+      });
+
+      int likeCount = 0;
+      final swipesSnapshot = await _dbRef.child('swipes').once();
+      final swipesData = swipesSnapshot.snapshot.value as Map?;
+
+      if (swipesData != null) {
+        for (final entry in swipesData.entries) {
+          final animalId = entry.key.toString();
+          if (myAnimalIds.contains(animalId)) {
+            final swipeEntry = entry.value as Map?;
+            final likes = swipeEntry?['likes'] as Map?;
+            if (likes != null) {
+              likeCount += likes.length;
+            }
+          }
+        }
+      }
+
+      setState(() {
+        _totalLikes = likeCount;
+      });
+
+      int activeChats = 0;
+      final convSnapshot = await _dbRef.child('conversations').once();
+      final convData = convSnapshot.snapshot.value as Map?;
+
+      if (convData != null) {
+        for (final conv in convData.values) {
+          if (conv is Map && conv['participants'] is List) {
+            final participants = List<String>.from(conv['participants']);
+            if (participants.contains(user.email)) {
+              activeChats++;
+            }
+          }
+        }
+      }
+
+      setState(() {
+        _activeConversations = activeChats;
+      });
+    } catch (e) {
+      debugPrint('Error loading stats: $e');
+    }
+  }
+
+  Widget _buildStatItem(IconData icon, String label, String count) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 28, color: Colors.black),
+            const SizedBox(height: 8),
+            Text(
+              count,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Quicksand',
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
+                fontFamily: 'Quicksand',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _verticalDivider() {
+    return Container(
+      width: 1,
+      height: 80,
+      color: AppColors.textSecondary.withOpacity(0.5),
+    );
   }
 
   @override
@@ -233,6 +340,18 @@ class _SanctuaryProfileScreenState extends State<SanctuaryProfileScreen> {
                     : const Text('Edit Sanctuary Profile')
               ),
             ),
+            const SizedBox(height: 16),
+
+            Row(
+              children: [
+                _buildStatItem(CupertinoIcons.hare, 'Animals', _animalCount.toString()),
+                _verticalDivider(),
+                _buildStatItem(CupertinoIcons.heart, 'Likes Received', _totalLikes.toString()),
+                _verticalDivider(),
+                _buildStatItem(CupertinoIcons.chat_bubble, 'Conversations', _activeConversations.toString()),
+              ],
+            ),
+
             const SizedBox(height: 32),
           ],
         ),

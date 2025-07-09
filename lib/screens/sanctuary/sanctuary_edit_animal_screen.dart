@@ -36,12 +36,17 @@ class _SanctuaryEditAnimalScreenState extends State<SanctuaryEditAnimalScreen> {
 
   bool _isSaving = false;
 
+  String? _originalAnimalName;
+
   String? _selectedGender;
   String? _selectedAgeCategory;
   String? _selectedSize;
   String? _selectedAdoptionStatus;
 
   bool _showAttachmentOptionsCard = false;
+
+  bool _showDeleteAnimalCard = false;
+  String _deleteAnimalConfirmText = '';
 
   @override
   void initState() {
@@ -93,6 +98,8 @@ class _SanctuaryEditAnimalScreenState extends State<SanctuaryEditAnimalScreen> {
           if (animal['id'] == widget.animalId) {
 
             setState(() {
+              _originalAnimalName = animal['name'];
+
               _nameController.text = animal['name'] ?? '';
               _descriptionController.text = animal['description'] ?? '';
               _ageController.text = (animal['age'] ?? '').toString();
@@ -232,6 +239,23 @@ class _SanctuaryEditAnimalScreenState extends State<SanctuaryEditAnimalScreen> {
     );
   }
 
+  Future<void> _deleteAnimal(String animalId) async {
+    try {
+      await FirebaseDatabase.instance.ref('animals/$animalId').remove();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Animal deleted successfully.')),
+      );
+
+      if (mounted)
+        Navigator.pop(context, true);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error deleting animal: $e')),
+      );
+    }
+  }
+
   Future<void> _pickImage(ImageSource source) async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: source);
@@ -341,6 +365,119 @@ class _SanctuaryEditAnimalScreenState extends State<SanctuaryEditAnimalScreen> {
                     setState(() => _showAttachmentOptionsCard = false),
                 child: const Text('Cancel'),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDeleteAnimalCard(String animalName) {
+    return Center(
+      child: Container(
+        padding: const EdgeInsets.all(24),
+        margin: const EdgeInsets.symmetric(horizontal: 24),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Delete Animal Profile',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Quicksand',
+              ),
+            ),
+            const SizedBox(height: 12),
+
+            const Text(
+              'To confirm deletion, type the animal\'s name preceded by @ (e.g., @Buddy). This action cannot be undone.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontFamily: 'Quicksand'),
+            ),
+            const SizedBox(height: 16),
+
+            TextField(
+              decoration: InputDecoration(
+                labelText: 'Type @$animalName',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _deleteAnimalConfirmText = value;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                SizedBox(
+                  width: 100,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        fontFamily: 'Quicksand',
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showDeleteAnimalCard = false;
+                        _deleteAnimalConfirmText = '';
+                      });
+                    },
+                    child: const Text('Cancel'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+
+                SizedBox(
+                  width: 100,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 14,
+                        fontFamily: 'Quicksand',
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    onPressed: _deleteAnimalConfirmText == '@$animalName'
+                        ? () async {
+                      await _deleteAnimal(widget.animalId!);
+                    }
+                        : null,
+                    child: const Text('Delete'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -836,8 +973,33 @@ class _SanctuaryEditAnimalScreenState extends State<SanctuaryEditAnimalScreen> {
                         : const Text('Save Changes'),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 20),
 
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 16,
+                        fontFamily: 'Quicksand',
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showDeleteAnimalCard = true;
+                      });
+                    },
+                    child: const Text('Delete Animal'),
+                  ),
+                ),
+                const SizedBox(height: 16),
               ],
             ),
           ),
@@ -845,6 +1007,11 @@ class _SanctuaryEditAnimalScreenState extends State<SanctuaryEditAnimalScreen> {
             Container(
               color: Colors.black.withOpacity(0.4),
               child: _buildAttachmentOptionsCard(),
+            ),
+          if (_showDeleteAnimalCard && _originalAnimalName != null)
+            Container(
+              color: Colors.black.withOpacity(0.4),
+              child: _buildDeleteAnimalCard(_originalAnimalName!),
             ),
         ],
       ),
