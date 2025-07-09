@@ -108,14 +108,27 @@ class _DiscoveryScreenState extends State<DiscoveryScreen> {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null || user.email == null) return;
 
-    String node = (direction.toLowerCase() == 'like') ? 'likes' : 'dislikes';
+    final userEmailSanitized = user.email!.replaceAll('.', ',');
 
-    final ref = FirebaseDatabase.instance.ref('swipes/$animalId/$node/${user.email!.replaceAll('.', ',')}');
+    final node = (direction.toLowerCase() == 'like') ? 'likes' : 'dislikes';
+    final ref = FirebaseDatabase.instance.ref('swipes/$animalId/$node/$userEmailSanitized');
 
     await ref.set({
       'animalId': animalId,
       'timestamp': DateTime.now().millisecondsSinceEpoch,
     });
+
+    if (direction.toLowerCase() == 'like') {
+      final chatRequestRef = FirebaseDatabase.instance
+          .ref('chatRequests/$animalId')
+          .push();
+
+      await chatRequestRef.set({
+        'adopterEmail': user.email,
+        'requestedAt': DateTime.now().toIso8601String(),
+        'animalId': animalId,
+      });
+    }
   }
 
   void _handleUndo() {

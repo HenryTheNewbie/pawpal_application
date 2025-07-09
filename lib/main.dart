@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
+import 'package:visibility_detector/visibility_detector.dart';
 import 'firebase_options.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'theme/theme.dart';
@@ -8,6 +9,8 @@ import 'routes/routes.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  VisibilityDetectorController.instance.updateInterval = Duration(milliseconds: 100);
 
   SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,

@@ -83,6 +83,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             setState(() {
               _otherUserReadTimestamp = entry.value.toString();
             });
+          } else {
+            _lastReadTimestamp = entry.value.toString();
           }
         }
       }
@@ -786,16 +788,26 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
   }
 
-  void _updateReadStatusIfNewer(dynamic timestamp) {
-    if (_lastReadTimestamp == null || timestamp.compareTo(_lastReadTimestamp!) > 0) {
+  void _updateReadStatusIfNewer(DateTime newTime) {
+    final newIso = newTime.toUtc().toIso8601String();
+
+    final lastRead = _lastReadTimestamp != null
+        ? DateTime.tryParse(_lastReadTimestamp!)
+        : null;
+
+    if (lastRead == null || newTime.isAfter(lastRead)) {
+      final safeEmail = _userEmail!.replaceAll('.', '_');
+
       setState(() {
-        _lastReadTimestamp = timestamp;
+        _lastReadTimestamp = newIso;
       });
 
-      final safeEmail = _userEmail!.replaceAll('.', '_');
       FirebaseDatabase.instance
           .ref('conversations/${widget.conversationId}/readStatus/$safeEmail')
-          .set(timestamp);
+          .set(newIso)
+          .catchError((e) {
+            print('Error updating read status: $e');
+      });
     }
   }
 
@@ -1153,7 +1165,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                           dtTimestamp = DateTime.tryParse(rawTimestamp);
                         }
 
-                        final key = Key('msg-${dtTimestamp?.millisecondsSinceEpoch ?? index}');
+                        final key = ValueKey('msg-$index-${dtTimestamp?.millisecondsSinceEpoch ?? ''}');
                         final showTimestamp = message['showTimestamp'] == true;
 
                         final isLastMyMessage = isMe &&
@@ -1182,7 +1194,9 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                               key: key,
                               onVisibilityChanged: (info) {
                                 if (info.visibleFraction > 0.7 && dtTimestamp != null) {
-                                  _updateReadStatusIfNewer(dtTimestamp.millisecondsSinceEpoch);
+                                  _updateReadStatusIfNewer(
+                                    dtTimestamp.toUtc(),
+                                  );
                                 }
                               },
                               child: Align(

@@ -178,11 +178,11 @@ class _SanctuaryChatScreenState extends State<SanctuaryChatScreen> {
                       requestCount: _animalRequestCount[animalId] ?? 0,
                       onTap: () {
                         Navigator.pushNamed(
-                          context,
-                          AppRoutes.sanctuaryChatByAnimal,
-                          arguments: {
-                            'animalId': animalId,
-                          }
+                            context,
+                            AppRoutes.sanctuaryChatByAnimal,
+                            arguments: {
+                              'animalId': animalId,
+                            }
                         );
                       },
                     );

@@ -159,30 +159,23 @@ class _SanctuaryChatScreenByAnimalState extends State<SanctuaryChatScreenByAnima
     return '${dateTime.day}/${dateTime.month}';
   }
 
-  Future<void> _acceptRequest(Map<String, dynamic> request) async {
+  Future<void> _acceptRequest(BuildContext context, Map<String, dynamic> request) async {
     final animalId = request['animalId'];
-    final requesterEmail = request['requesterEmail'];
-    final convoKey = request['key'];
-    if (animalId == null || requesterEmail == null || convoKey == null) return;
+    final requesterEmail = request['adopterEmail'];
+    final requestKey = request['key'];
+
+    if (animalId == null || requesterEmail == null || requestKey == null) return;
 
     final animal = _animalMap[animalId] ?? {};
 
     final conversationData = {
       'animalId': animalId,
       'animalName': animal['name'] ?? '',
-      'lastMessage': 'Conversation started.',
+      'lastMessage': '',
       'lastMessageType': 'text',
-      'lastSender': _userEmail,
+      'lastSender': '',
       'lastTimestamp': DateTime.now().toIso8601String(),
       'participants': [requesterEmail, _userEmail],
-      'messages': {
-        '0': {
-          'sender': _userEmail,
-          'text': 'Conversation started.',
-          'timestamp': DateTime.now().toIso8601String(),
-          'type': 'text',
-        },
-      },
       'readStatus': {
         '${requesterEmail.replaceAll('.', '_')}': '',
         '${_userEmail?.replaceAll('.', '_')}': '',
@@ -191,20 +184,47 @@ class _SanctuaryChatScreenByAnimalState extends State<SanctuaryChatScreenByAnima
 
     try {
       await _db.child('conversations').push().set(conversationData);
-      await _db.child('chatRequests/$convoKey').remove();
+      await _db.child('chatRequests/$animalId/$requestKey').remove();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Request accepted. Conversation started.'),
+          backgroundColor: Colors.green,
+        ),
+      );
     } catch (e) {
       debugPrint('Failed to accept request: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to accept request. Please try again.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
     }
   }
 
-  Future<void> _rejectRequest(Map<String, dynamic> request) async {
-    final convoKey = request['key'];
-    if (convoKey == null) return;
+  Future<void> _rejectRequest(BuildContext context, Map<String, dynamic> request) async {
+    final animalId = request['animalId'];
+    final requestKey = request['key'];
 
     try {
-      await _db.child('chatRequests/$convoKey').remove();
+      await _db.child('chatRequests/$animalId/$requestKey').remove();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Request declined successfully'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
     } catch (e) {
-      debugPrint('Failed to decline request: $e');
+      debugPrint('Failed to decline request $requestKey: $e');
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Failed to decline request. Please try again.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
     }
   }
 
@@ -698,23 +718,35 @@ class _SanctuaryChatScreenByAnimalState extends State<SanctuaryChatScreenByAnima
         ),
         if (_showAcceptCard)
           _buildAcceptRequestCard(
-                () {
-              _acceptRequest(_selectedRequest!);
-              setState(() => _showAcceptCard = false);
+                () async {
+              await _acceptRequest(context, _selectedRequest!);
+              setState(() {
+                _selectedRequest = null;
+                _showAcceptCard = false;
+              });
             },
                 () {
-              setState(() => _showAcceptCard = false);
+              setState(() {
+                _selectedRequest = null;
+                _showAcceptCard = false;
+              });
             },
           ),
 
         if (_showDeclineCard)
           _buildDeclineRequestCard(
-                () {
-              _rejectRequest(_selectedRequest!);
-              setState(() => _showDeclineCard = false);
+                () async {
+              await _rejectRequest(context, _selectedRequest!);
+              setState(() {
+                _selectedRequest = null;
+                _showDeclineCard = false;
+              });
             },
                 () {
-              setState(() => _showDeclineCard = false);
+              setState(() {
+                _selectedRequest = null;
+                _showDeclineCard = false;
+              });
             },
           ),
 

@@ -80,17 +80,13 @@ class SanctuaryRequestTile extends StatelessWidget {
                 onTap: onAccept,
                 child: Container(
                   padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.transparent,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF4DED88),
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Color(0xFF4DED88),
-                      width: 2,
-                    ),
                   ),
                   child: const Icon(
                     CupertinoIcons.check_mark,
-                    color: Color(0xFF4DED88),
+                    color: Colors.white,
                     size: 22,
                   ),
                 ),
@@ -101,17 +97,13 @@ class SanctuaryRequestTile extends StatelessWidget {
                 onTap: onReject,
                 child: Container(
                   padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(
-                    color: Colors.transparent,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFFF4D4D),
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: Color(0xFFFF4D4D),
-                      width: 2,
-                    ),
                   ),
                   child: const Icon(
                     CupertinoIcons.xmark,
-                    color: Color(0xFFFF4D4D),
+                    color: Colors.white,
                     size: 22,
                   ),
                 ),

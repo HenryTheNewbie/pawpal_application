@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import '../../firebase_options.dart';
+import '../../theme/colors.dart';
 import '../../theme/theme.dart';
 import '../../routes/routes.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -21,6 +22,10 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   String? _bio;
   String? _profilePhotoUrl;
 
+  int _likeCount = 0;
+  int _dislikeCount = 0;
+  int _activeConversations = 0;
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final DatabaseReference _dbRef = FirebaseDatabase.instance.ref();
 
@@ -28,6 +33,7 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
   void initState() {
     super.initState();
     _loadUserProfile();
+    _loadStats();
   }
 
   Future<void> _loadUserProfile() async {
@@ -54,10 +60,117 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
     }
   }
 
+  Future<void> _loadStats() async {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    final email = user.email;
+    if (email == null) return;
+
+    try {
+      int likes = 0;
+      int dislikes = 0;
+
+      final swipesSnapshot = await _dbRef.child('swipes').once();
+      final swipesData = swipesSnapshot.snapshot.value as Map?;
+
+      if (swipesData != null) {
+        for (final animalEntry in swipesData.entries) {
+          final data = animalEntry.value as Map?;
+
+          final likeMap = data?['likes'] as Map?;
+          final dislikeMap = data?['dislikes'] as Map?;
+
+          if (likeMap != null) {
+            for (final entry in likeMap.entries) {
+              if (entry.key.toString().replaceAll(',', '.') == email) {
+                likes++;
+                break;
+              }
+            }
+          }
+
+          if (dislikeMap != null) {
+            for (final entry in dislikeMap.entries) {
+              if (entry.key.toString().replaceAll(',', '.') == email) {
+                dislikes++;
+                break;
+              }
+            }
+          }
+        }
+      }
+
+      int active = 0;
+      final convSnapshot = await _dbRef.child('conversations').once();
+      final convData = convSnapshot.snapshot.value as Map?;
+
+      if (convData != null) {
+        for (final conv in convData.values) {
+          if (conv is Map && conv['participants'] is List) {
+            final participants = List<String>.from(conv['participants']);
+            if (participants.contains(email)) {
+              active++;
+            }
+          }
+        }
+      }
+
+      setState(() {
+        _likeCount = likes;
+        _dislikeCount = dislikes;
+        _activeConversations = active;
+      });
+    } catch (e) {
+      debugPrint('Error loading stats: $e');
+    }
+  }
+
   void _navigateToEditProfile() {
     Navigator.pushNamed(context, AppRoutes.editUserProfile).then((_) {
       _loadUserProfile();
     });
+  }
+
+  Widget _buildStatItem(IconData icon, String label, String count) {
+    return Expanded(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 28, color: Colors.black),
+            const SizedBox(height: 8),
+            Text(
+              count,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Quicksand',
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+                fontWeight: FontWeight.w500,
+                fontFamily: 'Quicksand',
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _verticalDivider() {
+    return Container(
+      width: 1,
+      height: 80,
+      color: AppColors.textSecondary.withOpacity(0.5),
+    );
   }
 
   @override
@@ -157,6 +270,17 @@ class _UserProfileScreenState extends State<UserProfileScreen> {
                 )
                     : const Text('Edit Profile'),
               ),
+            ),
+            const SizedBox(height: 16),
+
+            Row(
+              children: [
+                _buildStatItem(CupertinoIcons.heart_slash, 'Dislikes', _dislikeCount.toString()),
+                _verticalDivider(),
+                _buildStatItem(CupertinoIcons.heart, 'Likes', _likeCount.toString()),
+                _verticalDivider(),
+                _buildStatItem(CupertinoIcons.chat_bubble, 'Conversations', _activeConversations.toString()),
+              ],
             ),
             const SizedBox(height: 32),
           ],
